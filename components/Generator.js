@@ -4,7 +4,7 @@ import JSZip from 'jszip';
 import { TEES, teeById, STYLES } from '../lib/outfit';
 import { BGS, buildOutfit, renderSlide, slideBlob } from '../lib/render';
 
-const SLOT_NAMES = { outer: 'Jakke', bottom: 'Bukser', shoes: 'Sko', acc0: 'Tilbehør', acc1: 'Tilbehør' };
+const SLOT_NAMES = { outer: 'Overdel', bottom: 'Bukser', shoes: 'Sko', acc0: 'Ur', acc1: 'Cap' };
 
 function SlideCanvas({ slide, scale, opts, label }) {
   const ref = useRef(null);
@@ -128,7 +128,7 @@ export default function Generator() {
       <header>
         <div className="brand">BACIO</div>
         <h1>Outfit-generator til TikTok</h1>
-        <p className="lede">Hvert outfit bygges rundt om én af jeres tees efter faste looks, som københavnske fyre går i lige nu (ruskind og lys denim, workwear, strik og pressefolds, voksjakke og støvler …), med rigtige herre-produkter og kun rene produktbilleder. Kataloget opdateres automatisk hver 6. time.</p>
+        <p className="lede">Simple casual outfits rundt om jeres tees: en enkel hoodie eller et overshirt, bukser fra bl.a. Palmes, Polar, Palace og Service Works, Vans, et ur og nogle gange en cap. Kun rigtige herre-produkter og rene produktbilleder. Kataloget opdateres automatisk hver 6. time.</p>
       </header>
 
       <section className="panel" aria-label="Indstillinger">
