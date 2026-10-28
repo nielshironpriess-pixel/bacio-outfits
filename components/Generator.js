@@ -38,7 +38,6 @@ export default function Generator() {
   const [err, setErr] = useState(null);
   const [style, setStyle] = useState('alle');
   const [tees, setTees] = useState(TEES.map(t => t.id));
-  const [gender, setGender] = useState('men');
   const [bg, setBg] = useState('sand');
   const [labels, setLabels] = useState(true);
   const [extra, setExtra] = useState(true);
@@ -59,7 +58,7 @@ export default function Generator() {
     finally { setBusy(''); }
   }
 
-  async function generate(p = pool, ids = tees, st = style, g = gender) {
+  async function generate(p = pool, ids = tees, st = style) {
     if (!p) return;
     const used = new Set();
     const list = ids.length === 1 ? Array.from({ length: 6 }, () => ids[0]) : ids;
@@ -68,12 +67,12 @@ export default function Generator() {
     for (let i = 0; i < list.length; i++) {
       setBusy(`Bygger outfit ${i + 1} af ${list.length}…`);
       const s = ids.length === 1 && st === 'alle' ? keys[i % keys.length] : st;
-      out.push(await buildOutfit(p, list[i], s, g, used));
+      out.push(await buildOutfit(p, list[i], s, used));
     }
     setSlides(out.map((o, i) => ({ kind: 'outfit', o, num: `${i + 1}/${out.length}` })));
     setBusy('Bygger outfit-væg…');
     const gal = [];
-    for (let i = 0; i < 12; i++) gal.push(await buildOutfit(p, ids[i % ids.length], st, g, used));
+    for (let i = 0; i < 12; i++) gal.push(await buildOutfit(p, ids[i % ids.length], st, used));
     setGallery(gal); setBusy('');
   }
 
@@ -107,12 +106,12 @@ export default function Generator() {
   async function reroll(i) {
     setBusy('Blander outfit…');
     const used = new Set(slides.flatMap(s => Object.values(s.o.slots).filter(x => x.kind === 'product').map(x => x.item.id)));
-    const o = await buildOutfit(pool || [], slides[i].o.tee, style, gender, used);
+    const o = await buildOutfit(pool || [], slides[i].o.tee, style, used);
     setSlides(s => s.map((x, j) => j === i ? { ...x, o } : x)); setBusy('');
   }
   async function more() {
     setBusy('Bygger flere outfits…'); const used = new Set(); const add = [];
-    for (let i = 0; i < 12; i++) add.push(await buildOutfit(pool || [], tees[(gallery.length + i) % tees.length], style, gender, used));
+    for (let i = 0; i < 12; i++) add.push(await buildOutfit(pool || [], tees[(gallery.length + i) % tees.length], style, used));
     setGallery(g => [...g, ...add]); setBusy('');
   }
   async function saveAll() {
@@ -129,7 +128,7 @@ export default function Generator() {
       <header>
         <div className="brand">BACIO</div>
         <h1>Outfit-generator til TikTok</h1>
-        <p className="lede">Hvert outfit bygges rundt om én af jeres tees med rigtige produkter fra webshops, valgt efter farve og efter det, der går i København i efteråret: brun ruskind, chunky loafers, chore coats, kabelstrik og low-profile sneakers. Kataloget opdateres automatisk hver 6. time.</p>
+        <p className="lede">Hvert outfit bygges rundt om én af jeres tees efter faste looks, som københavnske fyre går i lige nu (ruskind og lys denim, workwear, strik og pressefolds, voksjakke og støvler …), med rigtige herre-produkter og kun rene produktbilleder. Kataloget opdateres automatisk hver 6. time.</p>
       </header>
 
       <section className="panel" aria-label="Indstillinger">
@@ -140,9 +139,6 @@ export default function Generator() {
         <div className="row"><span className="lab">Trøjer</span><div className="chips">
           {TEES.map(t => <button key={t.id} type="button" className="chip tee" aria-pressed={tees.includes(t.id)} onClick={() => toggleTee(t.id)} title={`${t.name} · ${t.col}`}>
             <img src={`/tees/${t.id}.webp`} alt={`${t.name} (${t.col})`} /></button>)}
-        </div></div>
-        <div className="row"><span className="lab">Produkter</span><div className="chips">
-          {[['men', 'Herre'], ['women', 'Dame'], ['all', 'Alle']].map(([k, n]) => <button key={k} type="button" className="chip" aria-pressed={gender === k} onClick={() => setGender(k)}>{n}</button>)}
         </div></div>
         <div className="row"><span className="lab">Baggrund</span><div className="chips">
           {Object.entries(BGS).map(([k, v]) => <button key={k} type="button" className="sw" aria-pressed={bg === k} onClick={() => setBg(k)} style={{ background: v.bg }} title={v.n} aria-label={`Baggrund: ${v.n}`} />)}
@@ -199,7 +195,7 @@ export default function Generator() {
           {gallery.map((o, i) => (
             <div key={i} className="card">
               <SlideCanvas slide={{ kind: 'outfit', o }} scale={1 / 3} opts={opts} label={`Outfit med ${teeById(o.tee).name} tee`} />
-              <b>{teeById(o.tee).name} · {STYLES[o.style].name}</b>
+              <b>{teeById(o.tee).name} · {o.look}</b>
               <Products o={o} />
               <div className="actions" style={{ gap: 6 }}>
                 <button className="btn sm" onClick={async () => save(await slideBlob({ kind: 'outfit', o }, opts), `bacio-outfit-${i + 1}.png`)}>Gem</button>
